@@ -1,0 +1,69 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Show versions
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code (build_runner)
+        run: dart run build_runner build --delete-conflicting-outputs || true
+
+      - name: Generate localization
+        run: |
+          dart pub global activate intl_utils 2>/dev/null || true
+          dart run intl_utils:generate 2>/dev/null || true
+          flutter gen-l10n 2>/dev/null || true
+
+      - name: Install CocoaPods
+        run: |
+          cd ios && pod install --repo-update || true
+
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Package IPA
+        run: |
+          mkdir -p /tmp/ipa_out
+          APP=$(find build/ios/iphoneos -name "Runner.app" -type d | head -1)
+          if [ -z "$APP" ]; then
+            echo "ERROR: Runner.app not found"
+            find build/ios -type d -name "*.app" 2>/dev/null
+            exit 1
+          fi
+          echo "Found: $APP"
+          mkdir -p /tmp/Payload
+          cp -R "$APP" /tmp/Payload/
+          cd /tmp && zip -r ipa_out/ReaderNover.ipa Payload/
+          echo "IPA created: /tmp/ipa_out/ReaderNover.ipa"
+          ls -lh /tmp/ipa_out/ReaderNover.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReaderNover-IPA
+          path: /tmp/ipa_out/ReaderNover.ipa
+
+      - name: Upload build log (debug)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-debug
+          path: |
+            build/ios/
+            ios/Pods/
+          if-no-files-found: warn
