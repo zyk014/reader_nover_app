@@ -17,24 +17,57 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Lower deployment target to iOS 15.0
+        run: |
+          sed -i '' "s/platform :ios, '15.6'/platform :ios, '15.0'/" ios/Podfile || true
+          sed -i '' "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 15.0/g" ios/Runner.xcodeproj/project.pbxproj || true
+          echo "=== Podfile platform ==="
+          grep "platform" ios/Podfile || true
+          echo "=== pbxproj deployment target ==="
+          grep "IPHONEOS_DEPLOYMENT_TARGET" ios/Runner.xcodeproj/project.pbxproj | head -5 || true
+
       - name: Install CocoaPods
         run: cd ios && pod install --repo-update || true
 
       - name: Build iOS (no codesign)
         run: flutter build ios --release --no-codesign
 
-      - name: Package IPA
+      - name: Apply ad-hoc signature
         run: |
-          mkdir -p /tmp/ipa_out
-          APP=$(find build/ios/iphoneos -name "Runner.app" -type d | head -1)
-          if [ -z "$APP" ]; then
-            echo "ERROR: Runner.app not found"
-            find build/ios -type d -name "*.app" 2>/dev/null
+          set +e
+          APP_PATH=$(find build -name "Runner.app" -type d | head -1)
+          echo "Found app: ${APP_PATH}"
+          if [ -z "${APP_PATH}" ]; then
+            echo "ERROR: No .app found"
+            find build -type d -name "*.app" 2>/dev/null
             exit 1
           fi
-          echo "Found: $APP"
-          mkdir -p /tmp/Payload
-          cp -R "$APP" /tmp/Payload/
+          echo "Signing frameworks..."
+          find "${APP_PATH}/Frameworks" -name "*.framework" -type d 2>/dev/null | while read fw; do
+            echo "  -> ${fw}"
+            codesign --force --sign - "${fw}" 2>&1
+          done
+          echo "Signing dylibs..."
+          find "${APP_PATH}" -name "*.dylib" 2>/dev/null | while read dy; do
+            echo "  -> ${dy}"
+            codesign --force --sign - "${dy}" 2>&1
+          done
+          echo "Signing app..."
+          codesign --force --sign - "${APP_PATH}" 2>&1
+          echo "Verifying..."
+          codesign -vv "${APP_PATH}" 2>&1 || true
+
+      - name: Package IPA
+        run: |
+          set +e
+          APP_PATH=$(find build -name "Runner.app" -type d | head -1)
+          if [ -z "${APP_PATH}" ]; then
+            echo "ERROR: app not found"
+            exit 1
+          fi
+          echo "Found: ${APP_PATH}"
+          mkdir -p /tmp/ipa_out /tmp/Payload
+          cp -R "${APP_PATH}" /tmp/Payload/
           cd /tmp && zip -r ipa_out/ReaderNover.ipa Payload/
           ls -lh /tmp/ipa_out/ReaderNover.ipa
 
@@ -44,10 +77,10 @@ jobs:
           name: ReaderNover-IPA
           path: /tmp/ipa_out/ReaderNover.ipa
 
-      - name: Upload build log (debug)
+      - name: Upload build logs (debug)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-debug
+          name: build-debug-logs
           path: build/ios/
           if-no-files-found: warn
