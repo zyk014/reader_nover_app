@@ -7,6 +7,7 @@ import '../../../app/service/source/explore_screen.dart';
 import '../../common/app_empty_state.dart';
 import 'detail/view.dart';
 import 'logic.dart';
+import 'package:reader_nover/app/service/ui_text_service.dart';
 
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
@@ -38,7 +39,7 @@ class _StorePageState extends State<StorePage> {
       builder: (_) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('书城'),
+            title: Text(UITextService.t('title_bookstore')),
             actions: [
               IconButton(
                 tooltip: '重新解析分类',

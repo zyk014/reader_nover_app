@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../app/service/content_filter_service.dart';
+import '../../../app/service/ui_text_service.dart';
 import '../../../util/color_utils.dart';
 
 class ContentFilterSettingsPage extends StatefulWidget {
@@ -32,7 +33,7 @@ class _ContentFilterSettingsPageState extends State<ContentFilterSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('内容净化'),
+        title: Text(UITextService.t('title_content_filter')),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -52,7 +53,7 @@ class _ContentFilterSettingsPageState extends State<ContentFilterSettingsPage> {
         children: [
           // 全局开关
           SwitchListTile(
-            title: const Text('启用内容净化'),
+            title: Text(UITextService.t('filter_enable')),
             subtitle: const Text('对所有书源的正文应用正则过滤'),
             value: _globalEnabled,
             onChanged: (v) async {

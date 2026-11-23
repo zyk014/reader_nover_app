@@ -6,6 +6,7 @@ import 'package:reader_nover/pages/home/setting/state.dart';
 import 'package:reader_nover/pages/reading_stats/view.dart';
 import 'package:reader_nover/app/l10n/generated/l10n.dart';
 import 'package:reader_nover/util/gap.dart';
+import 'ui_text_customize_page.dart';
 
 class SettingPage extends StatelessWidget {
   const SettingPage({
@@ -24,7 +25,16 @@ class SettingPage extends StatelessWidget {
         title: Text(S.of(context).setting),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+        children: [
+          ListTile(
+            leading: const Icon(Icons.text_fields),
+            title: const Text('界面文字自定义'),
+            subtitle: const Text('修改 App 中的按钮、菜单、标签文字'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Get.to(() => const UITextCustomizePage()),
+          ),
+          const Divider(),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
         children: [
           GetBuilder<SettingLogic>(builder: (logic) {
             return Card(
