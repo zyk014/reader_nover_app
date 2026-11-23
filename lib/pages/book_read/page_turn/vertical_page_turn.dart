@@ -750,15 +750,17 @@ class _VerticalPageTurnState extends State<VerticalPageTurn> {
           result.action != BookReadParagraphAction.cancel &&
           result.action != BookReadParagraphAction.tts) {
 
-        // 屏蔽此内容：加入屏蔽列表，整本书不再显示
+        // 屏蔽此内容：弹出编辑框让用户选择具体文字
         if (result.action == BookReadParagraphAction.block) {
-          await ContentFilterService.blockText(paragraph.text);
           if (!context.mounted) return;
-          Get.snackbar('已屏蔽', '该内容将在所有章节中隐藏',
+          final blockText = await _showBlockTextEditor(context, paragraph.text);
+          if (blockText == null || blockText.trim().isEmpty) return;
+          await ContentFilterService.blockText(blockText.trim());
+          if (!context.mounted) return;
+          Get.snackbar('已屏蔽', '"${blockText.trim().length > 20 ? blockText.trim().substring(0, 20) + '...' : blockText.trim()}" 将在所有章节中隐藏',
               backgroundColor: Colors.green.withValues(alpha: 0.8),
               colorText: Colors.white,
-              duration: const Duration(seconds: 2));
-          // 重新加载当前章节使屏蔽生效
+              duration: const Duration(seconds: 3));
           await widget.logic.reloadCurrentChapter();
           return;
         }
