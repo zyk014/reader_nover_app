@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:screen_brightness/screen_brightness.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:reader_nover/app/constants/default_setting.dart';
 import 'package:reader_nover/app/database/drift/app_database.dart' as db;
@@ -71,6 +72,18 @@ class BookReadSettingsController {
       fontFamily: state.fontFamily,
       color: state.textColor,
     );
+  }
+
+  bool _keepScreenOn = true;
+
+  bool get keepScreenOn => _keepScreenOn;
+
+  Future<void> toggleKeepScreenOn(bool enabled) async {
+    _keepScreenOn = enabled;
+    try {
+      await WakelockPlus.toggle(enable: enabled);
+    } catch (_) {}
+    onUpdate();
   }
 
   Future<void> captureSystemBrightness() async {

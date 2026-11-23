@@ -55,6 +55,7 @@ dependencies:
   palette_generator: ^0.3.3+4
   # 屏幕亮度控制
   screen_brightness: ^1.0.1
+  wakelock_plus: ^1.2.0
   # WebView 支持（用于需要 JavaScript 渲染的书源）
   flutter_inappwebview: ^6.1.5
   # 启动图标生成工具

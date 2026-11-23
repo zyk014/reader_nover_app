@@ -63,12 +63,35 @@ class BookReadSettingsSheet extends StatelessWidget {
                   _buildBackground(context, l, textColor),
                   const SizedBox(height: 8),
                   _buildFlip(context, l, textColor, secondaryTextColor),
+                  const SizedBox(height: 8),
+                  _buildKeepScreenOn(l, textColor),
                 ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildKeepScreenOn(BookReadLogic l, Color textColor) {
+    return Row(
+      children: [
+        SizedBox(
+          width: _labelWidth,
+          child: Text('常亮', style: TextStyle(color: textColor)),
+        ),
+        Expanded(
+          child: Switch(
+            value: state.keepScreenOn ?? true,
+            onChanged: (v) => l.toggleKeepScreenOn(v),
+          ),
+        ),
+        Text(
+          state.keepScreenOn == true ? '阅读时屏幕不熄灭' : '跟随系统',
+          style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 11),
+        ),
+      ],
     );
   }
 

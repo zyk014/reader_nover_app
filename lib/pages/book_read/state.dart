@@ -468,6 +468,7 @@ class BookReadState
 
   // 字体名称
   String? fontFamily;
+  bool? keepScreenOn; // 屏幕常亮
 
   // 初始背景颜色
   Color backgroundColor = const Color(0xFFF8F9E8);
