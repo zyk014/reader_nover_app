@@ -139,15 +139,7 @@ class BookReadAppBar extends StatelessWidget {
                       icon: Icon(Icons.refresh, color: state.iconColor),
                       tooltip: '重新加载',
                     ),
-                    if (!LocalBookConstants.isLocalBookSource(
-                      state.bookInfo.bookSourceId,
-                    ))
-                      IconButton(
-                        onPressed: logic.executePayActionAndReload,
-                        icon: Icon(Icons.payment_outlined,
-                            color: state.iconColor),
-                        tooltip: '付费动作',
-                      ),
+
                   ],
                 ),
               ),

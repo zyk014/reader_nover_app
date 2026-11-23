@@ -61,23 +61,9 @@ class BookReadParagraphActionSheet extends StatelessWidget {
                 style: TextStyle(color: textColor)),
             const SizedBox(height: 14),
             Wrap(spacing: 8, runSpacing: 8, children: [
-              _action(context, Icons.highlight_alt_rounded,
-                  S.of(context).highlights, BookReadParagraphAction.highlight),
-              _action(context, Icons.format_underlined_rounded,
-                  S.of(context).underline, BookReadParagraphAction.underline),
-              _action(context, Icons.note_add_outlined, S.of(context).note,
-                  BookReadParagraphAction.note),
               _action(context, Icons.block_outlined, '屏蔽此内容',
                   BookReadParagraphAction.block),
             ]),
-            const SizedBox(height: 14),
-            FilledButton.icon(
-              onPressed: () => Get.back(
-                  result: const BookReadParagraphActionResult(
-                      action: BookReadParagraphAction.tts)),
-              icon: const Icon(Icons.volume_up_outlined),
-              label: Text(S.of(context).startReadingAloud),
-            ),
           ]),
         ),
       ),
