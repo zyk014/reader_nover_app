@@ -18,6 +18,7 @@ Future<void> main() async {
   // 它会初始化Flutter的Widgets库。这个方法通常在你的应用程序的main()函数中调用，
   // 特别是在你的应用程序需要在runApp()之前执行异步操作时。
   WidgetsFlutterBinding.ensureInitialized();
+  await ContentFilterService.init();
 
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.edgeToEdge,

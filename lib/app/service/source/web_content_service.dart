@@ -12,6 +12,7 @@ import 'package:reader_nover/util/log_utils.dart';
 import 'source_check_policy.dart';
 import 'source_http.dart';
 import 'source_image_decoder.dart';
+import 'package:reader_nover/app/service/content_filter_service.dart';
 
 /// 章节正文加载服务（含分页支持）。
 class WebContentService {
@@ -382,6 +383,9 @@ class WebContentService {
       imageDecodeJs: ruleContent?.imageDecode,
       cancelToken: cancelToken,
     );
+    // ── 全局内容净化（用户自定义正则过滤广告/推广）──
+    formattedContent = ContentFilterService.applyFilters(formattedContent);
+
     await SourceHttp.persistRuleEngineVariables(source, engine);
 
     return formattedContent;

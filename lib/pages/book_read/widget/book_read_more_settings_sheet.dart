@@ -6,6 +6,7 @@ import '../controllers/book_read_ui_refresh_controller.dart';
 import '../logic.dart';
 import '../state.dart';
 import 'book_read_tts_settings_sheet.dart';
+import 'content_filter_settings_page.dart';
 
 class BookReadMoreSettingsSheet extends StatelessWidget {
   const BookReadMoreSettingsSheet(
@@ -57,6 +58,17 @@ class BookReadMoreSettingsSheet extends StatelessWidget {
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () =>
                         BookReadTtsSettingsSheet.show(context, logic, state),
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.filter_alt_outlined, color: textColor),
+                    title: Text('内容净化', style: TextStyle(color: textColor)),
+                    subtitle: Text('正则过滤广告/推广内容', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 12)),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Get.back();
+                      Get.to(() => const ContentFilterSettingsPage());
+                    },
                   ),
                 ]),
               ),
