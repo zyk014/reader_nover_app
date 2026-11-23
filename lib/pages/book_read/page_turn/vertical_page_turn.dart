@@ -14,6 +14,7 @@ import '../widget/book_read_paragraph_action_sheet.dart';
 import '../widget/book_read_annotation_editor_sheet.dart';
 import '../widget/tts_playback_rich_text.dart';
 import 'pagination_service.dart';
+import 'package:reader_nover/app/service/content_filter_service.dart';
 
 /// 垂直滚动阅读模式
 /// 保留有限窗口的章节节点，避免已读章节无限挂在渲染树中。
@@ -748,6 +749,20 @@ class _VerticalPageTurnState extends State<VerticalPageTurn> {
       if (result != null &&
           result.action != BookReadParagraphAction.cancel &&
           result.action != BookReadParagraphAction.tts) {
+
+        // 屏蔽此内容：加入屏蔽列表，整本书不再显示
+        if (result.action == BookReadParagraphAction.block) {
+          await ContentFilterService.blockText(paragraph.text);
+          if (!context.mounted) return;
+          Get.snackbar('已屏蔽', '该内容将在所有章节中隐藏',
+              backgroundColor: Colors.green.withValues(alpha: 0.8),
+              colorText: Colors.white,
+              duration: const Duration(seconds: 2));
+          // 重新加载当前章节使屏蔽生效
+          await widget.logic.reloadCurrentChapter();
+          return;
+        }
+
         final type = switch (result.action) {
           BookReadParagraphAction.highlight => BookAnnotationType.highlight,
           BookReadParagraphAction.underline => BookAnnotationType.underline,

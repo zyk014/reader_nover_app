@@ -61,6 +61,28 @@ class _ContentFilterSettingsPageState extends State<ContentFilterSettingsPage> {
             },
           ),
           const Divider(height: 1),
+          // 屏蔽文字列表（长按段落屏蔽的内容）
+          if (ContentFilterService.blockedTexts.isNotEmpty) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Colors.grey.withValues(alpha: 0.1),
+              child: Text('已屏蔽文字 (${ContentFilterService.blockedTexts.length})',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ),
+            ...ContentFilterService.blockedTexts.map((text) => ListTile(
+              dense: true,
+              title: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+              trailing: IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: () async {
+                  await ContentFilterService.unblockText(text);
+                  _loadData();
+                },
+              ),
+            )),
+            const Divider(height: 1),
+          ],
           // 规则列表
           Expanded(
             child: _rules.isEmpty

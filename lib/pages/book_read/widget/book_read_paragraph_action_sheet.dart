@@ -5,7 +5,7 @@ import '../../../app/l10n/generated/l10n.dart';
 import '../../../util/color_utils.dart';
 import '../state.dart';
 
-enum BookReadParagraphAction { cancel, tts, highlight, underline, note }
+enum BookReadParagraphAction { cancel, tts, highlight, underline, note, block }
 
 class BookReadParagraphActionResult {
   const BookReadParagraphActionResult({required this.action});
@@ -67,6 +67,8 @@ class BookReadParagraphActionSheet extends StatelessWidget {
                   S.of(context).underline, BookReadParagraphAction.underline),
               _action(context, Icons.note_add_outlined, S.of(context).note,
                   BookReadParagraphAction.note),
+              _action(context, Icons.block_outlined, '屏蔽此内容',
+                  BookReadParagraphAction.block),
             ]),
             const SizedBox(height: 14),
             FilledButton.icon(

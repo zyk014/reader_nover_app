@@ -54,6 +54,7 @@ class ContentFilterService {
   static const _prefKey = 'global_content_filter_rules';
   static const _enabledKey = 'global_content_filter_enabled';
   static List<ContentFilterRule> _cache = [];
+  static List<String> _blockedTexts = [];  // 简单文字屏蔽（非正则）
   static bool _globalEnabled = true;
 
   /// 预设常见广告过滤规则
@@ -109,6 +110,8 @@ class ContentFilterService {
       ];
 
   /// 从 SharedPreferences 加载规则
+  static const _blockedKey = 'global_blocked_texts';
+
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _globalEnabled = prefs.getBool(_enabledKey) ?? true;
@@ -122,6 +125,11 @@ class ContentFilterService {
       } catch (_) {
         _cache = [];
       }
+    }
+    // 加载屏蔽文字列表
+    final blockedStr = prefs.getStringList(_blockedKey);
+    if (blockedStr != null) {
+      _blockedTexts = blockedStr;
     }
   }
 
@@ -167,20 +175,45 @@ class ContentFilterService {
     await prefs.setString(_prefKey, jsonEncode(_cache.map((r) => r.toJson()).toList()));
   }
 
-  /// 对正文应用所有启用的过滤规则
+  /// 屏蔽指定文字（简单匹配，非正则）
+  static Future<void> blockText(String text) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
+    if (!_blockedTexts.contains(trimmed)) {
+      _blockedTexts.add(trimmed);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_blockedKey, _blockedTexts);
+    }
+  }
+
+  /// 删除屏蔽文字
+  static Future<void> unblockText(String text) async {
+    _blockedTexts.remove(text);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_blockedKey, _blockedTexts);
+  }
+
+  static List<String> get blockedTexts => List.unmodifiable(_blockedTexts);
+
+  /// 对正文应用所有过滤（屏蔽文字 + 正则规则）
   static String applyFilters(String content) {
     if (!_globalEnabled || content.isEmpty) return content;
     String result = content;
+    // 1. 屏蔽文字（简单匹配整段删除）
+    for (final blocked in _blockedTexts) {
+      if (blocked.isNotEmpty && result.contains(blocked)) {
+        result = result.replaceAll(blocked, '');
+      }
+    }
+    // 2. 正则规则
     for (final rule in _cache) {
       if (!rule.enabled || rule.pattern.isEmpty) continue;
       try {
         final regex = RegExp(rule.pattern, multiLine: true);
         result = result.replaceAll(regex, rule.replacement);
-      } catch (_) {
-        // 无效正则跳过
-      }
+      } catch (_) {}
     }
-    // 清理过滤后产生的多余空行
+    // 清理多余空行
     result = result.replaceAll(RegExp(r'\n{3,}'), '\n\n');
     return result.trim();
   }
