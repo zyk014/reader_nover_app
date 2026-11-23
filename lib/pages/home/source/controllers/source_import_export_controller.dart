@@ -346,10 +346,26 @@ class SourceImportExportController {
       await onRefreshSources();
       Get.snackbar(
         '导入完成',
-        '新增 $insertCount，更新 $updateCount${skipCount > 0 ? '，跳过 $skipCount 个无效' : ''}',
+        '新增 $insertCount，更新 $updateCount${skipCount > 0 ? '，跳过 $skipCount 个无效' : ''}。点击检测清理无效书源',
         backgroundColor: Colors.green.withValues(alpha: 0.8),
         colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+        onTap: (_) => autoCheckAndDeleteInvalid(),
       );
+
+      // 自动提示检测无效书源
+      if (insertCount > 0) {
+        Future.delayed(const Duration(seconds: 2), () {
+          Get.snackbar(
+            '提示',
+            '是否检测并清理无效书源？',
+            backgroundColor: Colors.blue.withValues(alpha: 0.8),
+            colorText: Colors.white,
+            duration: const Duration(seconds: 8),
+            onTap: (_) => autoCheckAndDeleteInvalid(),
+          );
+        });
+      }
     } catch (e) {
       LogUtils.e('扫码导入失败: $e');
       Get.snackbar(
@@ -616,13 +632,105 @@ class SourceImportExportController {
           companion,
         );
   }
+  /// 自动检测并删除无效书源（导入后快速验证）
+  Future<void> autoCheckAndDeleteInvalid() async {
+    final allSources = await _bookSourceDao.listAll();
+    if (allSources.isEmpty) {
+      Get.snackbar('提示', '没有书源需要检测',
+          backgroundColor: Colors.blue.withValues(alpha: 0.8),
+          colorText: Colors.white);
+      return;
+    }
+
+    Get.dialog(
+      barrierDismissible: false,
+      PopScope(
+        canPop: false,
+        child: Dialog(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                StatefulBuilder(builder: (context, setState) {
+                  return Text('正在检测 ${allSources.length} 个书源...',
+                      style: const TextStyle(fontSize: 14));
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final dio = Dio(BaseOptions(
+      connectTimeout: const Duration(seconds: 8),
+      receiveTimeout: const Duration(seconds: 8),
+      validateStatus: (_) => true,
+      followRedirects: true,
+      maxRedirects: 3,
+    ));
+
+    final invalidIds = <int>[];
+    var checked = 0;
+
+    for (final source in allSources) {
+      checked++;
+      final url = source.bookSourceUrl?.trim() ?? '';
+      if (url.isEmpty) {
+        invalidIds.add(source.id);
+        continue;
+      }
+      try {
+        final response = await dio.head(
+          url,
+          options: Options(headers: {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)'
+          }),
+        );
+        if (response.statusCode != null && response.statusCode! >= 500) {
+          invalidIds.add(source.id);
+        }
+      } catch (_) {
+        invalidIds.add(source.id);
+      }
+    }
+
+    Get.back(); // Close loading dialog
+
+    // Delete invalid sources
+    var deletedCount = 0;
+    for (final id in invalidIds) {
+      try {
+        await _bookSourceDao.deleteWithRules(id);
+        deletedCount++;
+      } catch (_) {}
+    }
+
+    await rebuildSourceCheckKeywords();
+    await onRefreshSources();
+
+    Get.snackbar(
+      '检测完成',
+      '共检测 ${allSources.length} 个，删除 $deletedCount 个无效书源，剩余 ${allSources.length - deletedCount} 个',
+      backgroundColor: deletedCount > 0
+          ? Colors.orange.withValues(alpha: 0.8)
+          : Colors.green.withValues(alpha: 0.8),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 4),
+    );
+  }
+
+
 }
 
 class SourceImportExportValidator {
   SourceImportExportValidator._();
 
-  static const int maxImportBytes = 5 * 1024 * 1024;
-  static const int maxImportEntries = 5000;
+  static const int maxImportBytes = 50 * 1024 * 1024; // 解除5M限制，改为50M
+  static const int maxImportEntries = 50000; // 解除5000条限制，改为50000
   static const int maxFieldBytes = 256 * 1024;
   static const int maxLongFieldBytesPerSource = maxFieldBytes * 5;
 
@@ -631,7 +739,7 @@ class SourceImportExportValidator {
       if (_exceedsUtf8Bytes(jsonStr, maxImportBytes)) {
         return const SourceValidateResult(
           isValid: false,
-          error: '导入数据超过 5 MiB 上限',
+          error: '导入数据超过 50 MiB 上限',
         );
       }
 
