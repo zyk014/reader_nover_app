@@ -69,6 +69,12 @@ class BookSearchLogic extends GetxController {
   }
 
   /// 关键词搜索（带防抖）
+  /// 切换搜索模式
+  void toggleSearchMode(int mode) {
+    state.searchMode = mode;
+    update();
+  }
+
   void searchWithDebounce(String keyword) {
     _searchDebouncer.run(() => search(keyword));
   }
@@ -180,7 +186,7 @@ class BookSearchLogic extends GetxController {
     required bool append,
   }) async {
     var hasResults = false;
-    const concurrencyLimit = 5;
+    const concurrencyLimit = 10; // 提高并发加速搜索
     for (int i = 0; i < state.bookSources.length; i += concurrencyLimit) {
       if (!_isActiveSearch(runId)) break;
 
@@ -218,13 +224,22 @@ class BookSearchLogic extends GetxController {
       cancelToken = CancelToken();
       _searchCancelTokens.add(cancelToken);
 
-      final books = await WebSearchService.searchBook(
+      var books = await WebSearchService.searchBook(
         bookSource,
         state.searchKeyword,
         cancelToken: cancelToken,
         page: page,
         throwOnEmpty: false,
-      ).timeout(SourceCheckPolicy.requestTimeout(bookSource.respondTime));
+      ).timeout(const Duration(seconds: 6)); // 缩短超时到6秒
+
+      // 精确匹配模式：只保留书名完全匹配的结果
+      if (state.searchMode == 1 && books.isNotEmpty) {
+        final keyword = state.searchKeyword.toLowerCase().trim();
+        books = books.where((b) {
+          final name = (b.name ?? '').toLowerCase().trim();
+          return name == keyword || name == '《$keyword》';
+        }).toList();
+      }
 
       if (!_isActiveSearch(runId)) return false;
 
@@ -357,7 +372,20 @@ class BookSearchLogic extends GetxController {
   }
 
   void _rebuildBookInfoList() {
-    state.bookInfoList = state.aggregatedBooks;
+    var books = state.aggregatedBooks;
+    // 排序：书名完全匹配的排前面，其次按书名包含关键词
+    final keyword = state.searchKeyword.toLowerCase().trim();
+    books.sort((a, b) {
+      final aName = (a.name ?? '').toLowerCase().trim();
+      final bName = (b.name ?? '').toLowerCase().trim();
+      final aExact = aName == keyword || aName == '《$keyword》';
+      final bExact = bName == keyword || bName == '《$keyword》';
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      // 非精确的按书名长度排序（短的更可能匹配）
+      return aName.length.compareTo(bName.length);
+    });
+    state.bookInfoList = books;
   }
 
   String _loginRequiredMessage(

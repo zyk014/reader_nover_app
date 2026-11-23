@@ -2,6 +2,12 @@ import '../../app/database/drift/app_database.dart' as db;
 import '../../app/database/models/models.dart';
 import '../../app/service/source/source_check_report.dart';
 
+/// 搜索模式
+class SearchMode {
+  static const int fuzzy = 0;   // 模糊匹配
+  static const int exact = 1;    // 精确匹配
+}
+
 class BookSearchState {
   late Map<String, List<BookInfo>> searchBookInfoMap;
   late List<BookInfo> bookInfoList;
@@ -13,6 +19,7 @@ class BookSearchState {
   String searchKeyword = '';
   int currentPage = 1;
   bool hasMore = true;
+  int searchMode = SearchMode.fuzzy; // 默认模糊搜索
 
   int get completedSourceCount =>
       sourceResults.values.where((r) => !r.isLoading).length;

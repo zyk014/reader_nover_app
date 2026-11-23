@@ -62,6 +62,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
           body: Column(
             children: [
               _buildSearchInput(context, logic),
+              _buildSearchModeSelector(context, logic),
               _buildSearchHistory(context, logic),
               _buildSearchProgress(context),
               const Divider(),
@@ -251,6 +252,48 @@ class _BookSearchPageState extends State<BookSearchPage> {
         },
         itemCount: itemCount,
         separatorBuilder: (context, index) => const Divider(height: 1),
+      ),
+    );
+  }
+
+  Widget _buildSearchModeSelector(BuildContext context, BookSearchLogic logic) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          _modeChip(context, logic, '模糊', 0),
+          const SizedBox(width: 8),
+          _modeChip(context, logic, '精确', 1),
+          const Spacer(),
+          if (state.isSearching)
+            Text(
+              '${state.completedSourceCount}/${state.totalSourceCount}',
+              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _modeChip(BuildContext context, BookSearchLogic logic, String label, int mode) {
+    final isSelected = state.searchMode == mode;
+    return GestureDetector(
+      onTap: () => logic.toggleSearchMode(mode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
       ),
     );
   }
