@@ -12,6 +12,7 @@ import 'app/routes/app_pages.dart';
 import 'app/net/http_client.dart';
 import 'app/net/webview_service.dart';
 import 'app/database/drift/app_database.dart' as db;
+import 'package:reader_nover/app/service/content_filter_service.dart';
 
 Future<void> main() async {
   // WidgetsFlutterBinding.ensureInitialized()是一个静态方法，
