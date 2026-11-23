@@ -316,6 +316,8 @@ class _BookReadDirectorySheetState extends State<BookReadDirectorySheet> {
     return Stack(
       children: [
         ListView.builder(
+        cacheExtent: 500,
+        addRepaintBoundaries: true,
           controller: _directoryListScrollController,
           physics: const ClampingScrollPhysics(),
           itemExtent: _chapterItemExtent,

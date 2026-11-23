@@ -136,6 +136,8 @@ class BookPage extends StatelessWidget {
 
   Widget _buildListView(List<Book> books) {
     return ListView.builder(
+      cacheExtent: 500,
+      addRepaintBoundaries: true,
       key: const PageStorageKey<String>('bookshelf-list'),
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.only(bottom: state.isSelectionMode ? 8 : 16),
@@ -179,6 +181,8 @@ class BookPage extends StatelessWidget {
         final childAspectRatio = width < 360 ? 0.52 : 0.58;
 
         return GridView.builder(
+          cacheExtent: 500,
+          addRepaintBoundaries: true,
           key: const PageStorageKey<String>('bookshelf-grid'),
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.only(

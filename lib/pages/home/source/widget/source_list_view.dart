@@ -60,6 +60,9 @@ class SourceListView extends StatelessWidget {
     );
 
     return ListView.builder(
+      cacheExtent: 500,
+      addAutomaticKeepAlives: true,
+      addRepaintBoundaries: true,
       padding: EdgeInsets.fromLTRB(
         12,
         12,

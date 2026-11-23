@@ -53,7 +53,8 @@ class BookReadPage extends StatelessWidget {
               statusBarIconBrightness: statusBarBrightness,
               statusBarBrightness: brightness,
             ),
-            child: Scaffold(
+            child: RepaintBoundary(
+              child: Scaffold(
               backgroundColor: bg,
               extendBodyBehindAppBar: true,
               body: LayoutBuilder(
@@ -71,6 +72,7 @@ class BookReadPage extends StatelessWidget {
                     ],
                   );
                 },
+              ),
               ),
             ),
           );

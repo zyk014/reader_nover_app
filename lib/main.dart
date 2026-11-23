@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -19,6 +20,13 @@ Future<void> main() async {
   // 它会初始化Flutter的Widgets库。这个方法通常在你的应用程序的main()函数中调用，
   // 特别是在你的应用程序需要在runApp()之前执行异步操作时。
   WidgetsFlutterBinding.ensureInitialized();
+  // 性能优化：减少不必要的重绘
+  if (kReleaseMode) {
+    debugProfileBuildsEnabled = false;
+    debugProfileLayoutsEnabled = false;
+    debugPrintLayouts = false;
+    debugPrintBuildScope = false;
+  }
   await ContentFilterService.init();
 
   SystemChrome.setEnabledSystemUIMode(

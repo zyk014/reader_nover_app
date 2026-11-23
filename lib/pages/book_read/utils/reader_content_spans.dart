@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:reader_nover/pages/book_read/page_turn/pagination_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 /// 将阅读页文本中的 `<img>` 拆成 TextSpan + WidgetSpan（data URL / 网络图）。
 ///
@@ -109,30 +110,22 @@ class _ReaderInlineImage extends StatelessWidget {
       );
     }
     if (src.startsWith('http://') || src.startsWith('https://')) {
-      return Image.network(
-        src,
+      return CachedNetworkImage(
+        imageUrl: src,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _placeholder(),
-        loadingBuilder: (context, child, progress) {
-          if (progress == null) return child;
-          return SizedBox(
-            width: 48,
-            height: 48,
-            child: Center(
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  value: progress.expectedTotalBytes != null
-                      ? progress.cumulativeBytesLoaded /
-                          progress.expectedTotalBytes!
-                      : null,
-                ),
-              ),
+        memCacheWidth: 800,
+        errorWidget: (_, __, ___) => _placeholder(),
+        placeholder: (_, __) => SizedBox(
+          width: 48,
+          height: 48,
+          child: const Center(
+            child: SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
-          );
-        },
+          ),
+        ),
       );
     }
     final uri = Uri.tryParse(src);
