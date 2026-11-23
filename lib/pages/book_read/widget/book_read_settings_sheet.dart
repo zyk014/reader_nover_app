@@ -9,6 +9,7 @@ import '../state.dart';
 import 'book_read_colors_picker_sheet.dart';
 import 'book_read_font_picker_sheet.dart';
 import 'book_read_more_settings_sheet.dart';
+import 'content_filter_settings_page.dart';
 
 class BookReadSettingsSheet extends StatelessWidget {
   final BookReadLogic logic;
@@ -64,6 +65,8 @@ class BookReadSettingsSheet extends StatelessWidget {
                   const SizedBox(height: 8),
                   _buildFlip(context, l, textColor, secondaryTextColor),
                   const SizedBox(height: 8),
+                  _buildContentFilter(context, l, textColor),
+                  const SizedBox(height: 8),
                   _buildKeepScreenOn(l, textColor),
                 ],
               ),
@@ -71,6 +74,29 @@ class BookReadSettingsSheet extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildContentFilter(BuildContext context, BookReadLogic l, Color textColor) {
+    return Row(
+      children: [
+        SizedBox(
+          width: _labelWidth,
+          child: Text('净化', style: TextStyle(color: textColor)),
+        ),
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {
+                Get.to(() => const ContentFilterSettingsPage());
+              },
+              icon: Icon(Icons.block_outlined, size: 16, color: textColor),
+              label: Text('内容净化 / 已屏蔽内容', style: TextStyle(color: textColor, fontSize: 13)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

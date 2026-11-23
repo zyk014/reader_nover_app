@@ -678,7 +678,31 @@ class _VerticalPageTurnState extends State<VerticalPageTurn> {
                   fallbackPageIndex,
                 ),
               );
-              return TtsPlaybackRichText(
+              return SelectionArea(
+                contextMenuBuilder: (context, selectableRegionState) {
+                  return AdaptiveTextSelectionToolbar.buttonItems(
+                    buttonItems: [
+                      ...selectableRegionState.contextMenuButtonItems,
+                      ContextMenuButtonItem(
+                        label: '屏蔽',
+                        onPressed: () async {
+                          final selectedText = selectableRegionState.copySelection();
+                          selectableRegionState.hideToolbar();
+                          final text = selectedText.toString().trim();
+                          if (text.isEmpty) return;
+                          await ContentFilterService.blockText(text);
+                          Get.snackbar('已屏蔽', '"${text.length > 20 ? text.substring(0, 20) + '...' : text}" 将在所有章节中隐藏',
+                              backgroundColor: Colors.green.withValues(alpha: 0.8),
+                              colorText: Colors.white,
+                              duration: const Duration(seconds: 2));
+                          await widget.logic.reloadCurrentChapter();
+                        },
+                      ),
+                    ],
+                    anchors: selectableRegionState.contextMenuAnchors,
+                  );
+                },
+                child: TtsPlaybackRichText(
                 content: chapter.content,
                 annotationRanges: widget.logic.annotationRangesForContent(
                   chapterIndex: chapter.chapterIndex,
@@ -693,6 +717,7 @@ class _VerticalPageTurnState extends State<VerticalPageTurn> {
                 strutStyle: strutStyle,
                 textScaler: MediaQuery.textScalerOf(context),
                 maxImageHeight: maxImageHeight,
+              ),
               );
             },
           ),
