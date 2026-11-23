@@ -142,6 +142,11 @@ class SourceLogic extends GetxController {
     await _importExportController.urlImport();
   }
 
+  /// 手动触发检测清理无效书源
+  void autoCheckAndDeleteInvalid() {
+    _importExportController.autoCheckAndDeleteInvalid();
+  }
+
   Future<void> openSourceLogin(BookSource source) async {
     await _loginController.openSourceLogin(source);
   }

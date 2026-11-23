@@ -98,6 +98,9 @@ class SourcePageAppBar extends StatelessWidget implements PreferredSizeWidget {
             case 'refresh':
               logic.refreshSources();
               break;
+            case 'auto_check':
+              logic.autoCheckAndDeleteInvalid();
+              break;
             default:
               logic.handleMenuAction(value);
           }
@@ -165,6 +168,15 @@ class SourcePageAppBar extends StatelessWidget implements PreferredSizeWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(Icons.file_upload_outlined, size: 20),
                 title: Text('导入书源'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'auto_check',
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.cleaning_services_outlined, size: 20),
+                title: Text('检测清理无效书源'),
               ),
             ),
             const PopupMenuItem(
