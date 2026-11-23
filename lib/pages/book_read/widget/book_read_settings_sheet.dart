@@ -83,7 +83,7 @@ class BookReadSettingsSheet extends StatelessWidget {
         ),
         Expanded(
           child: Switch(
-            value: state.keepScreenOn ?? true,
+            value: l.state.keepScreenOn ?? true,
             onChanged: (v) => l.toggleKeepScreenOn(v),
           ),
         ),

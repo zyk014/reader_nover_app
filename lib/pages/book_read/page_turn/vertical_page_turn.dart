@@ -15,6 +15,7 @@ import '../widget/book_read_annotation_editor_sheet.dart';
 import '../widget/tts_playback_rich_text.dart';
 import 'pagination_service.dart';
 import 'package:reader_nover/app/service/content_filter_service.dart';
+import 'package:get/get.dart';
 
 /// 垂直滚动阅读模式
 /// 保留有限窗口的章节节点，避免已读章节无限挂在渲染树中。
@@ -802,6 +803,63 @@ class _VerticalPageTurnState extends State<VerticalPageTurn> {
     } finally {
       widget.logic.clearParagraphPreview();
     }
+  }
+
+  /// 弹出文字编辑框，让用户选择要屏蔽的具体文字
+  Future<String?> _showBlockTextEditor(BuildContext context, String paragraphText) async {
+    final controller = TextEditingController(text: paragraphText);
+    controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: paragraphText.length,
+    );
+
+    return Get.dialog<String>(
+      AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.block_outlined, size: 20),
+            SizedBox(width: 8),
+            Text('屏蔽内容', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '编辑要屏蔽的文字（删除不需要的部分，只保留广告内容）：',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              maxLines: 5,
+              minLines: 2,
+              autofocus: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: '选择要屏蔽的文字...',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: null),
+            child: const Text('取消'),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              final text = controller.text.trim();
+              controller.dispose();
+              Get.back(result: text.isEmpty ? null : text);
+            },
+            icon: const Icon(Icons.block, size: 18),
+            label: const Text('屏蔽'),
+          ),
+        ],
+      ),
+    );
   }
 
   String _getCurrentChapterName() {

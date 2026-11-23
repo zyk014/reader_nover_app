@@ -687,6 +687,10 @@ class BookReadLogic extends GetxController with GetTickerProviderStateMixin {
     _settingsController.updateFontSize(value);
   }
 
+  void toggleKeepScreenOn(bool enabled) {
+    _settingsController.toggleKeepScreenOn(enabled);
+  }
+
   void updateFontFamily(String? fontFamily) {
     _settingsController.updateFontFamily(fontFamily);
   }

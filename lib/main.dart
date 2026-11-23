@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -24,9 +23,6 @@ Future<void> main() async {
   // 性能优化：减少不必要的重绘
   if (kReleaseMode) {
     debugProfileBuildsEnabled = false;
-    debugProfileLayoutsEnabled = false;
-    debugPrintLayouts = false;
-    debugPrintBuildScope = false;
   }
   await ContentFilterService.init();
   await UITextService.init();
