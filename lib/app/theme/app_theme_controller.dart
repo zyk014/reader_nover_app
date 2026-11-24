@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app_theme.dart';
 import 'app_theme_palette.dart';
 import 'theme_config.dart';
+import 'fonts.dart';
 
 class AppThemeController extends GetxController {
   static const palettePrefsKey = 'app_theme_palette';
@@ -16,6 +17,7 @@ class AppThemeController extends GetxController {
   ThemeData darkTheme = appDarkTheme;
   ThemeMode themeMode = ThemeMode.light;
   AppThemePalette palette = AppThemePalette.money;
+  String? globalFontFamily; // 全局界面字体
 
   @override
   void onInit() {
@@ -25,6 +27,7 @@ class AppThemeController extends GetxController {
 
   Future<void> _bootstrap() async {
     await _loadPaletteFromPrefs();
+    await _loadGlobalFont();
     _applyPaletteThemes();
     await _loadFromAsset();
     await _loadThemeModeFromDb();
@@ -124,8 +127,42 @@ class AppThemeController extends GetxController {
     update();
   }
 
+  Future<void> _loadGlobalFont() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      globalFontFamily = prefs.getString('global_font_family');
+    } catch (_) {}
+  }
+
+  Future<void> setGlobalFont(String? fontFamily) async {
+    globalFontFamily = fontFamily;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (fontFamily == null || fontFamily.isEmpty) {
+        await prefs.remove('global_font_family');
+      } else {
+        await prefs.setString('global_font_family', fontFamily);
+      }
+    } catch (_) {}
+    _applyPaletteThemes();
+    Get.changeTheme(lightTheme);
+    Get.changeTheme(darkTheme);
+    update();
+  }
+
   void _applyPaletteThemes() {
     lightTheme = palette.buildLight();
     darkTheme = palette.buildDark();
+    // 应用全局字体
+    if (globalFontFamily != null && globalFontFamily!.isNotEmpty) {
+      lightTheme = lightTheme.copyWith(
+        textTheme: lightTheme.textTheme.apply(fontFamily: globalFontFamily),
+        primaryTextTheme: lightTheme.primaryTextTheme.apply(fontFamily: globalFontFamily),
+      );
+      darkTheme = darkTheme.copyWith(
+        textTheme: darkTheme.textTheme.apply(fontFamily: globalFontFamily),
+        primaryTextTheme: darkTheme.primaryTextTheme.apply(fontFamily: globalFontFamily),
+      );
+    }
   }
 }

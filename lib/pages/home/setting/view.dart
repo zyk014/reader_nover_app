@@ -6,7 +6,7 @@ import 'package:reader_nover/pages/home/setting/state.dart';
 import 'package:reader_nover/pages/reading_stats/view.dart';
 import 'package:reader_nover/app/l10n/generated/l10n.dart';
 import 'package:reader_nover/util/gap.dart';
-import 'ui_text_customize_page.dart';
+import '../../../app/theme/fonts.dart';
 
 class SettingPage extends StatelessWidget {
   const SettingPage({
@@ -28,12 +28,27 @@ class SettingPage extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
         children: [
           Card(
-            child: ListTile(
-              leading: const Icon(Icons.text_fields),
-              title: const Text('界面文字自定义'),
-              subtitle: const Text('修改按钮、菜单、标签文字'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Get.to(() => const UITextCustomizePage()),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('全局字体', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: Fonts.availableFonts.map((font) {
+                      final isSelected = themeController.globalFontFamily == font['family'];
+                      return ChoiceChip(
+                        label: Text(font['name']!),
+                        selected: isSelected,
+                        onSelected: (_) => themeController.setGlobalFont(font['family']),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
           ),
           GetBuilder<SettingLogic>(builder: (logic) {

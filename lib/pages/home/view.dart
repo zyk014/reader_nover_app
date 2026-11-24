@@ -8,7 +8,6 @@ import 'package:reader_nover/pages/home/source/view.dart';
 import 'package:reader_nover/pages/home/state.dart';
 import 'package:reader_nover/util/platform_utils.dart';
 import 'package:reader_nover/app/l10n/generated/l10n.dart';
-import 'package:reader_nover/app/service/ui_text_service.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -51,22 +50,22 @@ class HomePage extends StatelessWidget {
                         BottomNavigationBarItem(
                           icon: const Icon(Icons.menu_book_outlined),
                           activeIcon: const Icon(Icons.menu_book),
-                          label: UITextService.t('tab_bookshelf'),
+                          label: S.of(context).bookshelf,
                         ),
                         BottomNavigationBarItem(
                           icon: const Icon(Icons.library_books_outlined),
                           activeIcon: const Icon(Icons.library_books),
-                          label: UITextService.t('tab_bookstore'),
+                          label: S.of(context).bookStore,
                         ),
                         BottomNavigationBarItem(
                           icon: const Icon(Icons.source_outlined),
                           activeIcon: const Icon(Icons.source),
-                          label: UITextService.t('tab_booksource'),
+                          label: S.of(context).bookSources,
                         ),
                         BottomNavigationBarItem(
                           icon: const Icon(Icons.settings_outlined),
                           activeIcon: const Icon(Icons.settings),
-                          label: UITextService.t('tab_setting'),
+                          label: S.of(context).setting,
                         ),
                       ],
                     );
