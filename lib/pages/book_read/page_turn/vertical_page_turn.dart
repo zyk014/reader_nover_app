@@ -686,9 +686,11 @@ class _VerticalPageTurnState extends State<VerticalPageTurn> {
                       ContextMenuButtonItem(
                         label: '屏蔽',
                         onPressed: () async {
-                          final selectedText = selectableRegionState.copySelection(SelectionChangedCause.toolbar);
+                          // Get the selected text from the selectable region
+                          final selection = selectableRegionState.selectableRegion;
+                          final selectedContent = selection.getSelectedContent();
                           selectableRegionState.hideToolbar();
-                          final text = selectedText.toString().trim();
+                          final text = selectedContent?.plainText.trim() ?? '';
                           if (text.isEmpty) return;
                           await ContentFilterService.blockText(text);
                           Get.snackbar('已屏蔽', '"${text.length > 20 ? text.substring(0, 20) + '...' : text}" 将在所有章节中隐藏',
