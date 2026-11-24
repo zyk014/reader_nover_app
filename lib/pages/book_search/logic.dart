@@ -69,9 +69,9 @@ class BookSearchLogic extends GetxController {
   }
 
   /// 关键词搜索（带防抖）
-  /// 切换搜索模式
-  void toggleSearchMode(int mode) {
-    state.searchMode = mode;
+  /// 切换结果标签
+  void switchTab(int tab) {
+    state.resultTab = tab;
     update();
   }
 
@@ -224,22 +224,13 @@ class BookSearchLogic extends GetxController {
       cancelToken = CancelToken();
       _searchCancelTokens.add(cancelToken);
 
-      var books = await WebSearchService.searchBook(
+      final books = await WebSearchService.searchBook(
         bookSource,
         state.searchKeyword,
         cancelToken: cancelToken,
         page: page,
         throwOnEmpty: false,
-      ).timeout(const Duration(seconds: 6)); // 缩短超时到6秒
-
-      // 精确匹配模式：只保留书名完全匹配的结果
-      if (state.searchMode == 1 && books.isNotEmpty) {
-        final keyword = state.searchKeyword.toLowerCase().trim();
-        books = books.where((b) {
-          final name = (b.name ?? '').toLowerCase().trim();
-          return name == keyword || name == '《$keyword》';
-        }).toList();
-      }
+      ).timeout(const Duration(seconds: 6));
 
       if (!_isActiveSearch(runId)) return false;
 

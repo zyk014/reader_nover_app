@@ -62,7 +62,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
           body: Column(
             children: [
               _buildSearchInput(context, logic),
-              _buildSearchModeSelector(context, logic),
+              _buildResultTabs(context, logic),
               _buildSearchHistory(context, logic),
               _buildSearchProgress(context),
               const Divider(),
@@ -90,7 +90,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
           onSubmitted: (value) async {
             if (value.isNotEmpty) {
               await logic.search(value);
-              if (state.bookInfoList.isEmpty && !_hasLoginRequiredSource()) {
+              if (state.currentBooks.isEmpty && !_hasLoginRequiredSource()) {
                 DialogUtils.waring('没有搜索到相关书籍');
               }
             } else {
@@ -134,7 +134,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
 
     final completed = state.completedSourceCount;
     final total = state.totalSourceCount;
-    final resultCount = state.bookInfoList.length;
+    final resultCount = state.currentBooks.length;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -195,7 +195,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
         )
         .toList(growable: false);
 
-    if (state.bookInfoList.isEmpty &&
+    if (state.currentBooks.isEmpty &&
         loginRequiredResults.isEmpty &&
         failedResults.isEmpty) {
       return const SizedBox.shrink();
@@ -206,7 +206,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
     final itemCount = loginRequiredList.length +
         failureHeader +
         failedResults.length +
-        state.bookInfoList.length;
+        state.currentBooks.length;
 
     return NotificationListener<ScrollUpdateNotification>(
       onNotification: (notification) {
@@ -240,7 +240,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
             cursor -= failedResults.length;
           }
 
-          final book = state.bookInfoList[cursor];
+          final book = state.currentBooks[cursor];
           final source = state.bookSources
               .firstWhere((value) => value.id == book.bookSourceId);
           return _SearchBookItem(
@@ -256,44 +256,76 @@ class _BookSearchPageState extends State<BookSearchPage> {
     );
   }
 
-  Widget _buildSearchModeSelector(BuildContext context, BookSearchLogic logic) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+  Widget _buildResultTabs(BuildContext context, BookSearchLogic logic) {
+    final exactCount = state.exactBooks.length;
+    final fuzzyCount = state.aggregatedBooks.length;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
+        ),
+      ),
       child: Row(
         children: [
-          _modeChip(context, logic, '模糊', 0),
-          const SizedBox(width: 8),
-          _modeChip(context, logic, '精确', 1),
-          const Spacer(),
-          if (state.isSearching)
-            Text(
-              '${state.completedSourceCount}/${state.totalSourceCount}',
-              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
-            ),
+          Expanded(child: _tabItem(context, logic, '模糊', fuzzyCount, 0)),
+          Expanded(child: _tabItem(context, logic, '精确', exactCount, 1)),
         ],
       ),
     );
   }
 
-  Widget _modeChip(BuildContext context, BookSearchLogic logic, String label, int mode) {
-    final isSelected = state.searchMode == mode;
+  Widget _tabItem(BuildContext context, BookSearchLogic logic, String label, int count, int tab) {
+    final isSelected = state.resultTab == tab;
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
-      onTap: () => logic.toggleSearchMode(mode),
+      onTap: () => logic.switchTab(tab),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? cs.primary : Colors.transparent,
+              width: 2,
+            ),
           ),
         ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label, style: TextStyle(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              color: isSelected ? cs.primary : cs.onSurface.withValues(alpha: 0.7),
+            )),
+            const SizedBox(height: 2),
+            Text('$count', style: TextStyle(
+              fontSize: 10,
+              color: isSelected ? cs.primary : cs.onSurface.withValues(alpha: 0.4),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchProgress(BuildContext context) {
+    if (!state.isSearching && state.completedSourceCount == 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          if (state.isSearching)
+            const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.5))
+          else
+            const Icon(Icons.check_circle, size: 12, color: Colors.green),
+          const SizedBox(width: 6),
+          Text(
+            state.isSearching
+                ? '正在搜索... ${state.completedSourceCount}/${state.totalSourceCount}'
+                : '搜索完成 ${state.completedSourceCount}/${state.totalSourceCount} 个书源',
+            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+          ),
+        ],
       ),
     );
   }
@@ -320,7 +352,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
               (history) => GestureDetector(
                 onTap: () async {
                   await logic.search(history.keyword);
-                  if (state.bookInfoList.isEmpty &&
+                  if (state.currentBooks.isEmpty &&
                       !_hasLoginRequiredSource()) {
                     DialogUtils.waring('没有搜索到相关书籍');
                   }
