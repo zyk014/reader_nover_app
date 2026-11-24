@@ -46,6 +46,14 @@ class HomePage extends StatelessWidget {
                       unselectedItemColor:
                           colorScheme.onSurface.withValues(alpha: 0.45),
                       type: BottomNavigationBarType.fixed,
+                      selectedLabelStyle: TextStyle(
+                        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                        fontSize: 12,
+                      ),
+                      unselectedLabelStyle: TextStyle(
+                        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                        fontSize: 12,
+                      ),
                       items: [
                         BottomNavigationBarItem(
                           icon: const Icon(Icons.menu_book_outlined),

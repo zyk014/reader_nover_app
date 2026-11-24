@@ -13,15 +13,27 @@ class BookSearchState {
   String searchKeyword = '';
   int currentPage = 1;
   bool hasMore = true;
+  bool isPaused = false; // 搜索暂停状态
   int resultTab = 0; // 0=模糊 1=精确
 
   int get completedSourceCount =>
       sourceResults.values.where((r) => !r.isLoading).length;
   int get totalSourceCount => sourceResults.length;
 
-  List<BookInfo> get aggregatedBooks => [
-        for (final source in bookSources) ...?sourceResults[source.id]?.books,
-      ];
+  List<BookInfo> get aggregatedBooks {
+    // 有结果的书源排前面，失败的排后面
+    final sortedSources = bookSources.toList()
+      ..sort((a, b) {
+        final aBooks = sourceResults[a.id]?.books ?? [];
+        final bBooks = sourceResults[b.id]?.books ?? [];
+        if (aBooks.isNotEmpty && bBooks.isEmpty) return -1;
+        if (aBooks.isEmpty && bBooks.isNotEmpty) return 1;
+        return 0;
+      });
+    return [
+      for (final source in sortedSources) ...?sourceResults[source.id]?.books,
+    ];
+  }
 
   /// 精确匹配结果（书名完全等于关键词）
   List<BookInfo> get exactBooks {

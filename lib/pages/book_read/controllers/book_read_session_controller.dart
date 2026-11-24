@@ -13,6 +13,7 @@ import 'package:reader_nover/util/log_utils.dart';
 
 import '../state.dart';
 import '../page_turn/two_page_spread_strategy.dart';
+import 'package:reader_nover/app/service/content_filter_service.dart';
 
 typedef LoadReadChaptersCallback = Future<void> Function();
 typedef AsyncVoidCallback = Future<void> Function();
@@ -1060,7 +1061,8 @@ class BookReadSessionController {
 
       state.readChapterIndices.add(chapterIndex);
       state.cachedChapterIndices.add(chapterIndex);
-      return _formatContentWithIndent(originalContent);
+      final filteredOriginal = ContentFilterService.applyFilters(originalContent);
+      return _formatContentWithIndent(filteredOriginal);
     } catch (e) {
       LogUtils.e('垂直滚动模式加载章节失败: $e');
       return null;
@@ -1761,8 +1763,9 @@ class BookReadSessionController {
       }
 
       final content = contentResult.requireData();
-
-      final formattedContent = _formatContentWithIndent(content);
+      final filteredContent = ContentFilterService.applyFilters(content);
+      
+      final formattedContent = _formatContentWithIndent(filteredContent);
       final paginationResult = _paginationService().splitContentWithCache(
         formattedContent,
         _buildPaginationConfig(),

@@ -69,6 +69,47 @@ class BookSearchLogic extends GetxController {
   }
 
   /// 关键词搜索（带防抖）
+  /// 暂停搜索
+  void pauseSearch() {
+    state.isPaused = true;
+    _cancelAllSearches();
+    update();
+  }
+
+  /// 继续搜索
+  void resumeSearch() async {
+    state.isPaused = false;
+    update();
+    // 继续搜索剩余书源
+    final runId = _searchRunId;
+    await _searchRemainingSources(runId);
+  }
+
+  /// 搜索剩余未完成的书源
+  Future<void> _searchRemainingSources(int runId) async {
+    if (!_isActiveSearch(runId) || state.isPaused) return;
+    
+    const concurrencyLimit = 5;
+    // 找出还没搜索完的书源
+    final remaining = state.bookSources.where((s) {
+      final result = state.sourceResults[s.id];
+      return result?.isLoading == true;
+    }).toList();
+    
+    for (int i = 0; i < remaining.length; i += concurrencyLimit) {
+      if (!_isActiveSearch(runId) || state.isPaused) break;
+      
+      final batch = remaining.skip(i).take(concurrencyLimit);
+      await Future.wait(
+        batch.map((source) => _searchSingleSource(source, runId, page: 1, append: false)),
+      );
+      if (_isActiveSearch(runId)) {
+        _rebuildBookInfoList();
+        update();
+      }
+    }
+  }
+
   /// 切换结果标签
   void switchTab(int tab) {
     state.resultTab = tab;
@@ -186,9 +227,9 @@ class BookSearchLogic extends GetxController {
     required bool append,
   }) async {
     var hasResults = false;
-    const concurrencyLimit = 10; // 提高并发加速搜索
+    const concurrencyLimit = 5; // 适中并发防止App卡死
     for (int i = 0; i < state.bookSources.length; i += concurrencyLimit) {
-      if (!_isActiveSearch(runId)) break;
+      if (!_isActiveSearch(runId) || state.isPaused) break;
 
       final batch = state.bookSources.skip(i).take(concurrencyLimit);
       final results = await Future.wait(
