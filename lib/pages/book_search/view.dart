@@ -308,27 +308,6 @@ class _BookSearchPageState extends State<BookSearchPage> {
     );
   }
 
-  Widget _buildSearchProgress(BuildContext context) {
-    if (!state.isSearching && state.completedSourceCount == 0) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Row(
-        children: [
-          if (state.isSearching)
-            const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.5))
-          else
-            const Icon(Icons.check_circle, size: 12, color: Colors.green),
-          const SizedBox(width: 6),
-          Text(
-            state.isSearching
-                ? '正在搜索... ${state.completedSourceCount}/${state.totalSourceCount}'
-                : '搜索完成 ${state.completedSourceCount}/${state.totalSourceCount} 个书源',
-            style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSearchHistory(BuildContext context, BookSearchLogic logic) {
     final bgColor = Theme.of(context).colorScheme.surface;
