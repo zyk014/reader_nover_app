@@ -16,6 +16,7 @@ import '../widget/tts_playback_rich_text.dart';
 import 'pagination_service.dart';
 import 'package:reader_nover/app/service/content_filter_service.dart';
 import 'package:get/get.dart';
+import 'package:flutter/services.dart';
 
 /// 垂直滚动阅读模式
 /// 保留有限窗口的章节节点，避免已读章节无限挂在渲染树中。
@@ -686,11 +687,10 @@ class _VerticalPageTurnState extends State<VerticalPageTurn> {
                       ContextMenuButtonItem(
                         label: '屏蔽',
                         onPressed: () async {
-                          // Get the selected text from the selectable region
-                          final selection = selectableRegionState.selectableRegion;
-                          final selectedContent = selection.getSelectedContent();
+                          selectableRegionState.copySelection(SelectionChangedCause.toolbar);
                           selectableRegionState.hideToolbar();
-                          final text = selectedContent?.plainText.trim() ?? '';
+                          final clipData = await Clipboard.getData('text/plain');
+                          final text = clipData?.text?.trim() ?? '';
                           if (text.isEmpty) return;
                           await ContentFilterService.blockText(text);
                           Get.snackbar('已屏蔽', '"${text.length > 20 ? text.substring(0, 20) + '...' : text}" 将在所有章节中隐藏',
