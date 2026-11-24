@@ -6,6 +6,7 @@ import 'package:reader_nover/pages/home/setting/state.dart';
 import 'package:reader_nover/pages/reading_stats/view.dart';
 import 'package:reader_nover/app/l10n/generated/l10n.dart';
 import 'package:reader_nover/util/gap.dart';
+import '../../../app/theme/app_theme_controller.dart';
 import '../../../app/theme/fonts.dart';
 
 class SettingPage extends StatelessWidget {
@@ -17,6 +18,7 @@ class SettingPage extends StatelessWidget {
   final SettingLogic logic;
 
   SettingState get state => logic.state;
+  AppThemeController get themeController => Get.find<AppThemeController>();
 
   @override
   Widget build(BuildContext context) {

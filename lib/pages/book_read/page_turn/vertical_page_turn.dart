@@ -686,7 +686,7 @@ class _VerticalPageTurnState extends State<VerticalPageTurn> {
                       ContextMenuButtonItem(
                         label: '屏蔽',
                         onPressed: () async {
-                          final selectedText = selectableRegionState.copySelection();
+                          final selectedText = selectableRegionState.copySelection(SelectionChangedCause.toolbar);
                           selectableRegionState.hideToolbar();
                           final text = selectedText.toString().trim();
                           if (text.isEmpty) return;
