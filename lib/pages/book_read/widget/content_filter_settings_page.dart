@@ -246,11 +246,11 @@ class _ContentFilterSettingsPageState extends State<ContentFilterSettingsPage> {
     Get.back();
     await ContentFilterService.blockText(trimmed);
     _load();
-    Get.snackbar('已添加', '"$trimmed" 将在所有章节中屏蔽',
+    Get.snackbar('已添加', '"$trimmed" 将在所有章节中屏蔽\n返回阅读后自动刷新',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green.withValues(alpha: 0.8),
         colorText: Colors.white,
-        duration: const Duration(seconds: 2));
+        duration: const Duration(seconds: 3));
   }
 
   void _showEditRuleDialog(ContentFilterRule rule) {

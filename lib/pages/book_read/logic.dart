@@ -42,6 +42,7 @@ import 'controllers/book_read_settings_controller.dart';
 import 'controllers/book_read_tts_controller.dart';
 import 'controllers/book_read_ui_refresh_controller.dart';
 import 'state.dart';
+import 'package:reader_nover/app/service/content_filter_service.dart';
 
 class BookReadLogic extends GetxController with GetTickerProviderStateMixin {
   BookReadLogic({
@@ -228,6 +229,13 @@ class BookReadLogic extends GetxController with GetTickerProviderStateMixin {
 
   @override
   void onReady() {
+    // 检查是否需要重载内容（在设置页添加了屏蔽词后）
+    if (ContentFilterService.needsContentReload) {
+      ContentFilterService.needsContentReload = false;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        reloadCurrentChapter();
+      });
+    }
     super.onReady();
 
     _paginationService = PaginationService();

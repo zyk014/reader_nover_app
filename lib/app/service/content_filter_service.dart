@@ -56,6 +56,7 @@ class ContentFilterService {
   static List<ContentFilterRule> _cache = [];
   static List<String> _blockedTexts = [];  // 简单文字屏蔽（非正则）
   static bool _globalEnabled = true;
+  static bool needsContentReload = false; // 添加屏蔽词后需要重载内容
 
   /// 预设常见广告过滤规则
   static List<ContentFilterRule> presetRules() => [
@@ -183,6 +184,7 @@ class ContentFilterService {
       _blockedTexts.add(trimmed);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList(_blockedKey, _blockedTexts);
+      needsContentReload = true;
     }
   }
 
