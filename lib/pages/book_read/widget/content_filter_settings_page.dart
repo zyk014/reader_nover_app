@@ -188,6 +188,7 @@ class _ContentFilterSettingsPageState extends State<ContentFilterSettingsPage> {
   }
 
   void _showAddDialog() {
+    final textController = TextEditingController();
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(20),
@@ -206,13 +207,13 @@ class _ContentFilterSettingsPageState extends State<ContentFilterSettingsPage> {
                   style: TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 16),
               TextField(
+                controller: textController,
                 autofocus: true,
                 maxLines: 3,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   hintText: '例如：请关注微信公众号xxx',
                 ),
-                onSubmitted: (value) => _addBlockedText(value),
               ),
               const SizedBox(height: 12),
               Row(
@@ -221,9 +222,11 @@ class _ContentFilterSettingsPageState extends State<ContentFilterSettingsPage> {
                   TextButton(onPressed: () => Get.back(), child: const Text('取消')),
                   FilledButton(
                     onPressed: () {
-                      // Get the text from the TextField
-                      // Since we used onSubmitted, let's use a controller instead
-                      Get.back();
+                      final text = textController.text.trim();
+                      if (text.isNotEmpty) {
+                        _addBlockedText(text);
+                      }
+                      textController.dispose();
                     },
                     child: const Text('添加'),
                   ),
@@ -233,7 +236,8 @@ class _ContentFilterSettingsPageState extends State<ContentFilterSettingsPage> {
           ),
         ),
       ),
-    ).then((_) {});
+      isScrollControlled: true,
+    );
   }
 
   Future<void> _addBlockedText(String text) async {

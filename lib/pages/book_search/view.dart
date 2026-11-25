@@ -202,11 +202,13 @@ class _BookSearchPageState extends State<BookSearchPage> {
     }
 
     final loginRequiredList = loginRequiredResults.toList();
+    final bookCount = state.currentBooks.length;
     final failureHeader = failedResults.isEmpty ? 0 : 1;
-    final itemCount = loginRequiredList.length +
+    // 顺序：书籍结果 → 登录要求 → 失败书源
+    final itemCount = bookCount +
+        loginRequiredList.length +
         failureHeader +
-        failedResults.length +
-        state.currentBooks.length;
+        failedResults.length;
 
     return NotificationListener<ScrollUpdateNotification>(
       onNotification: (notification) {
@@ -219,16 +221,30 @@ class _BookSearchPageState extends State<BookSearchPage> {
       child: ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
         itemBuilder: (context, index) {
-          if (index < loginRequiredList.length) {
-            final result = loginRequiredList[index];
+          // 1. 书籍结果排最前面
+          if (index < bookCount) {
+            final book = state.currentBooks[index];
+            final source = state.bookSources
+                .firstWhere((value) => value.id == book.bookSourceId);
+            return _SearchBookItem(
+              searchBook: book,
+              sourceName: source.bookSourceName,
+              source: source,
+              onRefreshBookshelf: logic.onRefreshBookshelf,
+            );
+          }
+          var cursor = index - bookCount;
+          // 2. 登录要求的书源
+          if (cursor < loginRequiredList.length) {
+            final result = loginRequiredList[cursor];
             return _SourceLoginRequiredItem(
               result: result,
               canOpenLogin: logic.hasOpenableSourceLoginEntry(result.source),
               onLoginAndRetry: () => logic.loginAndRetrySource(result.source),
             );
           }
-
-          var cursor = index - loginRequiredList.length;
+          cursor -= loginRequiredList.length;
+          // 3. 失败书源排最后
           if (failedResults.isNotEmpty) {
             if (cursor == 0) {
               return _FailedSourcesHeader(count: failedResults.length);
@@ -237,18 +253,8 @@ class _BookSearchPageState extends State<BookSearchPage> {
             if (cursor < failedResults.length) {
               return _SourceFailedItem(result: failedResults[cursor]);
             }
-            cursor -= failedResults.length;
           }
-
-          final book = state.currentBooks[cursor];
-          final source = state.bookSources
-              .firstWhere((value) => value.id == book.bookSourceId);
-          return _SearchBookItem(
-            searchBook: book,
-            sourceName: source.bookSourceName,
-            source: source,
-            onRefreshBookshelf: logic.onRefreshBookshelf,
-          );
+          return const SizedBox.shrink();
         },
         itemCount: itemCount,
         separatorBuilder: (context, index) => const Divider(height: 1),
