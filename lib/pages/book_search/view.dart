@@ -156,18 +156,56 @@ class _BookSearchPageState extends State<BookSearchPage> {
                 ),
                 const Gap.hs(),
               ],
-              Text(
-                state.isSearching
-                    ? '搜索中 $completed/$total 个书源，已找到 $resultCount 本'
-                    : '共搜索 $total 个书源，找到 $resultCount 本',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: secondaryColor,
+              Expanded(
+                child: Text(
+                  state.isPaused
+                      ? '已暂停 $completed/$total，已找到 $resultCount 本'
+                      : state.isSearching
+                          ? '搜索中 $completed/$total，已找到 $resultCount 本'
+                          : '共搜索 $total 个书源，找到 $resultCount 本',
+                  style: TextStyle(fontSize: 12, color: secondaryColor),
                 ),
               ),
+              if (state.isSearching || state.isPaused)
+                GestureDetector(
+                  onTap: () {
+                    if (state.isPaused) {
+                      logic.resumeSearch();
+                    } else {
+                      logic.pauseSearch();
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: state.isPaused
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          state.isPaused ? Icons.play_arrow : Icons.pause,
+                          size: 14,
+                          color: state.isPaused ? Colors.green : Colors.orange,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          state.isPaused ? '继续' : '暂停',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: state.isPaused ? Colors.green : Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
-          if (state.isSearching && total > 0) ...[
+          if ((state.isSearching || state.isPaused) && total > 0) ...[
             const Gap.vs(),
             ClipRRect(
               borderRadius: BorderRadius.circular(2),
